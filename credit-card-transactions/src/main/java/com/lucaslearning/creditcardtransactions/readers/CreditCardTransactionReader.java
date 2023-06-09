@@ -10,7 +10,7 @@ import com.lucaslearning.creditcardtransactions.domain.Transaction;
 public class CreditCardTransactionReader implements ItemStreamReader<CreditCardTransaction> {
 	
 	private ItemStreamReader<Transaction> delegate;
-	private Transaction originalTransaction;
+	private Transaction atualTransaction;
 	
 	public CreditCardTransactionReader(ItemStreamReader<Transaction> delegate) {
 		this.delegate = delegate;
@@ -21,13 +21,13 @@ public class CreditCardTransactionReader implements ItemStreamReader<CreditCardT
 	 */
 	@Override
 	public CreditCardTransaction read() throws Exception {
-		if (originalTransaction == null) {
-			originalTransaction = delegate.read();
+		if (atualTransaction == null) {
+			atualTransaction = delegate.read();
 		}
 		
 		CreditCardTransaction creditCardTransaction = null;
-		Transaction transaction = originalTransaction;
-		originalTransaction = null;
+		Transaction transaction = atualTransaction;
+		atualTransaction = null;
 		
 		// associate the transactions
 		if (transaction != null) {
@@ -37,7 +37,7 @@ public class CreditCardTransactionReader implements ItemStreamReader<CreditCardT
 			creditCardTransaction.getTransactions().add(transaction);
 			
 			while (isTransactionRelated(transaction)) {
-				creditCardTransaction.getTransactions().add(originalTransaction);
+				creditCardTransaction.getTransactions().add(atualTransaction);
 			}
 		}
 		
@@ -66,7 +66,7 @@ public class CreditCardTransactionReader implements ItemStreamReader<CreditCardT
 	 * @throws Exception
 	 */
 	private boolean isTransactionRelated(Transaction transaction) throws Exception {
-		return peek() != null && transaction.getCreditCard().getCreditCardNumber() == originalTransaction.getCreditCard().getCreditCardNumber();
+		return peek() != null && transaction.getCreditCard().getCreditCardNumber().equals(atualTransaction.getCreditCard().getCreditCardNumber());
 	}
 
 	/**
@@ -76,8 +76,8 @@ public class CreditCardTransactionReader implements ItemStreamReader<CreditCardT
 	 * @throws Exception
 	 */
 	private Transaction peek() throws Exception {
-		originalTransaction = delegate.read();
-		return originalTransaction;
+		atualTransaction = delegate.read();
+		return atualTransaction;
 	}
 	
 }
